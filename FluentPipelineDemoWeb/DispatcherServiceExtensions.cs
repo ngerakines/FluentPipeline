@@ -1,28 +1,29 @@
 namespace FluentPipeline.Web
 {
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
+
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using FluentPipeline.Core;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Configuration;
 
     public static class DispatcherServiceExtensions
     {
 
-        public static void UseDispatcher(this IApplicationBuilder builder, ILoggerFactory loggerFactory)
+        public static void UseDispatcher(this IApplicationBuilder builder, ILoggerFactory loggerFactory, IConfigurationRoot configuration)
         {
             var lifetime = (IApplicationLifetime)builder.ApplicationServices.GetService(typeof(IApplicationLifetime));
 
             var stoppingToken = lifetime.ApplicationStopping;
             var stoppedToken = lifetime.ApplicationStopped;
 
-            var dispatcherFactory = new DispatcherFactory(loggerFactory);
+            var workerFactory = new StringWorkerFactory(loggerFactory);
+            var dispatcherFactory = new StringDispatcherFactory(loggerFactory, workerFactory);
             var dispatcher = dispatcherFactory.Create();
 
             dispatcher.Run();
-            dispatcher.StartWorker(loggerFactory);
+            // How many workers do we start?
+            dispatcher.StartWorker();
 
             stoppingToken.Register(() =>
             {

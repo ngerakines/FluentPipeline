@@ -1,6 +1,6 @@
-'FluentPipelineCore/bin'  
-'FluentPipelineCore/obj'  
-'FluentPipelineDemoCli/obj'  
-'FluentPipelineDemoCli/bin'  
-'FluentPipelineDemoWeb/bin'  
-'FluentPipelineDemoWeb/obj'  
+FluentPipelineCore/bin
+FluentPipelineCore/obj
+FluentPipelineDemoCli/obj
+FluentPipelineDemoCli/bin
+FluentPipelineDemoWeb/bin
+FluentPipelineDemoWeb/obj

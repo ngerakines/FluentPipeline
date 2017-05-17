@@ -1,12 +1,10 @@
 namespace FluentPipeline.Core
 {
 
-    using Microsoft.Extensions.Logging;
-
-    public interface IDispatcher
+    public interface IDispatcher<T>
     {
         void Run();
-        void StartWorker(ILoggerFactory logger);
+        void StartWorker();
         void Stop();
         void Wait();
         void StopAll();

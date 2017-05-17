@@ -12,3 +12,5 @@
 'dotnet add FluentPipelineCore\FluentPipelineCore.csproj package Microsoft.Extensions.Logging.Console'  
 'dotnet add FluentPipelineCore\FluentPipelineCore.csproj package Microsoft.Extensions.Logging.Debug'  
 'dotnet add FluentPipelineDemoCli\FluentPipelineDemoCli.csproj package Microsoft.Extensions.Logging.Console'  
+'dotnet add FluentPipelineCore.csproj package AWSSDK.SQS'  
+'dotnet add FluentPipelineCore.csproj package Newtonsoft.JSON'  

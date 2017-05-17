@@ -16,11 +16,12 @@
             var logger = loggerFactory.CreateLogger("Program");
             logger.LogInformation("Program starting");
 
-            var dispatcherFactory = new DispatcherFactory(loggerFactory);
+            var workerFactory = new StringWorkerFactory(loggerFactory);
+            var dispatcherFactory = new StringDispatcherFactory(loggerFactory, workerFactory);
             var dispatcher = dispatcherFactory.Create();
 
             dispatcher.Run();
-            dispatcher.StartWorker(loggerFactory);
+            dispatcher.StartWorker();
 
             while (true)
             {
