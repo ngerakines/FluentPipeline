@@ -15,8 +15,9 @@ namespace FluentPipeline.Core
         private readonly Concurrent​Queue<string> workQueue;
         private readonly CancellationTokenSource cancellationTokenSource;
         private readonly CancellationToken cancellationToken;
-        private readonly IList<Worker> workers;
-        private readonly IList<Task> tasks;
+        private readonly IList<IWorker> workers;
+
+        private Task serviceTask;
 
         public Dispatcher(ILoggerFactory loggerFactory)
         {
@@ -25,11 +26,10 @@ namespace FluentPipeline.Core
             cancellationToken = cancellationTokenSource.Token;
 
             workQueue = new Concurrent​Queue<string>();
-            tasks = new List<Task>();
-            workers = new List<Worker>();
+            workers = new List<IWorker>();
         }
 
-        public void Cancel()
+        public void Stop()
         {
             logger.LogInformation(LoggingEvents.DISPATCHER_SHUTDOWN, "Dispatcher shutdown has been requested.");
             if (!cancellationTokenSource.IsCancellationRequested)
@@ -41,15 +41,47 @@ namespace FluentPipeline.Core
             {
                 logger.LogWarning(LoggingEvents.DISPATCHER_SHUTDOWN, "Dispatcher is already shutting down.");
             }
+        }
+
+        public void StopAll()
+        {
             foreach (var worker in workers)
             {
-                worker.Cancel();
+                worker.Stop();
+            }
+        }
+
+        public void Wait()
+        {
+            logger.LogInformation(LoggingEvents.DISPATCHER_SHUTDOWN, "Waiting for dispatcher to stop.");
+            try
+            {
+                if (!serviceTask.Wait(TimeSpan.FromSeconds(30)))
+                {
+                    logger.LogInformation(LoggingEvents.DISPATCHER_SHUTDOWN, "Dispatcher did not gracefully stop.");
+                }
+                else
+                {
+                    logger.LogInformation(LoggingEvents.DISPATCHER_SHUTDOWN, "Dispatcher gracefully stopped.");
+                }
+            }
+            catch (System.Exception)
+            {
+                // Ignored
+            }
+        }
+
+        public void WaitAll()
+        {
+            foreach (var worker in workers)
+            {
+                worker.Wait();
             }
         }
 
         public void Run()
         {
-            Task.Run(() =>
+            serviceTask = Task.Run(() =>
             {
                 logger.LogInformation(LoggingEvents.DISPATCHER_STARTUP, "Dispatcher has started.");
                 Random rnd = new Random();

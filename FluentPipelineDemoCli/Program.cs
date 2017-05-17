@@ -1,7 +1,6 @@
 ﻿namespace FluentPipeline.Cli
 {
     using System;
-    using System.Threading;
     using Microsoft.Extensions.Logging;
 
     using FluentPipeline.Core;
@@ -11,8 +10,8 @@
 
         static void Main(string[] args)
         {
-            ILoggerFactory loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory();
-            loggerFactory.AddConsole(Microsoft.Extensions.Logging.LogLevel.Debug);
+            ILoggerFactory loggerFactory = new LoggerFactory();
+            loggerFactory.AddConsole(LogLevel.Debug);
 
             var logger = loggerFactory.CreateLogger("Program");
             logger.LogInformation("Program starting");
@@ -23,20 +22,25 @@
             dispatcher.Run();
             dispatcher.StartWorker(loggerFactory);
 
-            while(true)
-			{
-				string s = Console.ReadLine();
-				
-				if(s == "q")
-					break;
-				
-				System.Threading.Thread.Sleep(100);
-			}
+            while (true)
+            {
+                string s = Console.ReadLine();
 
-            dispatcher.Cancel();
+                if (s == "q")
+                {
+                    break;
+                }
+
+                System.Threading.Thread.Sleep(100);
+            }
+
+            dispatcher.Stop();
+            dispatcher.StopAll();
+            dispatcher.Wait();
+            dispatcher.WaitAll();
 
             logger.LogInformation("Program stopping");
-            
+
         }
     }
 }

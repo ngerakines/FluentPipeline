@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace FluentPipelineDemoWeb
+namespace FluentPipeline.Web
 {
     public class Startup
     {
@@ -32,6 +32,8 @@ namespace FluentPipelineDemoWeb
             {
                 await context.Response.WriteAsync("Hello World!");
             });
+
+            app.UseDispatcher(loggerFactory);
         }
     }
 }

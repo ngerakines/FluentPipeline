@@ -1,6 +1,7 @@
 namespace FluentPipeline.Core
 {
     using Microsoft.Extensions.Logging;
+
     public class DispatcherFactory
     {
         private readonly ILoggerFactory loggerFactory;
@@ -9,7 +10,7 @@ namespace FluentPipeline.Core
         public DispatcherFactory(ILoggerFactory loggerFactory)
         {
             this.loggerFactory = loggerFactory;
-            this.logger = loggerFactory.CreateLogger("FluentPipeline.Core.DispatcherFactory");
+            logger = loggerFactory.CreateLogger("FluentPipeline.Core.DispatcherFactory");
         }
 
         public IDispatcher Create()
