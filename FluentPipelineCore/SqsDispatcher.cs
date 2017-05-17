@@ -9,6 +9,7 @@
     using Newtonsoft.Json;
     using System.Collections.Concurrent;
     using Microsoft.Extensions.DependencyInjection;
+    using FluentPipeline.Core.Middleware;
 
     public class SqsDispatcherConfiguration
     {
@@ -66,17 +67,18 @@
     {
         private readonly IServiceProvider services;
         private readonly ILoggerFactory loggerFactory;
-        private readonly IWorkerFactory<Message> workerFactory;
+        private readonly SqsDispatcherConfiguration sqsDispatcherConfiguration;
 
-        public SqsWorkerFactory(ILoggerFactory loggerFactory, IServiceProvider services)
+        public SqsWorkerFactory(ILoggerFactory loggerFactory, IServiceProvider services, SqsDispatcherConfiguration sqsDispatcherConfiguration)
         {
             this.services = services;
             this.loggerFactory = loggerFactory;
+            this.sqsDispatcherConfiguration = sqsDispatcherConfiguration;
         }
 
         public IWorker Create(IProducerConsumerCollection<Message> workQueue)
         {
-            return new SqsWorker(loggerFactory, workQueue, services);
+            return new SqsWorker(loggerFactory, workQueue, services, sqsDispatcherConfiguration);
         }
     }
 
@@ -84,21 +86,46 @@
     {
         private readonly ILogger logger;
         private readonly IServiceProvider services;
+        private readonly SqsDispatcherConfiguration sqsDispatcherConfiguration;
 
-        public SqsWorker(ILoggerFactory loggerFactory, IProducerConsumerCollection<Message> workQueue, IServiceProvider services) : base(loggerFactory, workQueue)
+        public SqsWorker(ILoggerFactory loggerFactory, IProducerConsumerCollection<Message> workQueue, IServiceProvider services, SqsDispatcherConfiguration sqsDispatcherConfiguration) : base(loggerFactory, workQueue)
         {
             logger = loggerFactory.CreateLogger("FluentPipeline.Core.SqsWorker");
             this.services = services;
+            this.sqsDispatcherConfiguration = sqsDispatcherConfiguration;
         }
 
-        protected override void ProcessWork(Message result)
+        protected override void ProcessWork(Message message)
         {
-            logger.LogDebug(LoggingEvents.WORKER_RUN, "Worker has found work: {0}", result);
+            logger.LogDebug(LoggingEvents.WORKER_RUN, "Worker has found work: {0}", message);
             using (var scopedServices = services.CreateScope())
             {
-                var dispatcher = scopedServices.ServiceProvider.GetRequiredService<Object>();
-                /* ... */
+                var sqs = scopedServices.ServiceProvider.GetRequiredService<IAmazonSQS>();
+                try
+                {
+                    var wrappedSnsMessage = JsonConvert.DeserializeObject<WrappedSnsMessage>(message.Body);
+                    var dispatcher = scopedServices.ServiceProvider.GetRequiredService<IMiddlewareDispatcher>();
+                    dispatcher.Dispatch(wrappedSnsMessage.Message);
+                    sqs.DeleteMessageAsync(sqsDispatcherConfiguration.Queue, message.ReceiptHandle).Wait();
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(0, e, "Error processing message");
+                }
             }
         }
+    }
+
+    class WrappedSnsMessage
+    {
+        public String Type { get; set; }
+        public String MessageId { get; set; }
+        public String TopicArn { get; set; }
+        public String Message { get; set; }
+        public String Timestamp { get; set; }
+        public String SignatureVersion { get; set; }
+        public String Signature { get; set; }
+        public String SigningCertURL { get; set; }
+        public String UnsubscribeURL { get; set; }
     }
 }
