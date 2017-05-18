@@ -3,32 +3,8 @@ namespace FluentPipeline.Core
 
     using System;
     using System.Text;
-    using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using System.Threading;
-
-    public class RandomBackoffPolicy : IBackoffPolicy
-    {
-        private readonly Random random = new Random();
-        private readonly int min;
-        private readonly int max;
-
-        public RandomBackoffPolicy(int min = 0, int max = 1000)
-        {
-            this.min = min;
-            this.max = max;
-        }
-
-        public int Delay()
-        {
-            return random.Next(0, 1000);
-        }
-
-        public void RecordAttempt(bool success = false)
-        {
-            throw new NotImplementedException();
-        }
-    }
 
     public class StringDispatcher : DelegatingDispatcher<string>
     {
