@@ -6,4 +6,5 @@ namespace FluentPipeline.Core
         void Stop();
         void Wait();
     }
+
 }
