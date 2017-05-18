@@ -91,9 +91,19 @@ namespace FluentPipeline.Core
         private readonly int maxAttempts;
         private readonly int incrementValue;
 
-        public GraduatedBackoff(int attempts = 0, int maxAttempts = 60, int incrementValue = 1000)
+        public GraduatedBackoff(int maxAttempts = 60, int incrementValue = 1000)
         {
-            this.attempts = attempts;
+            if(maxAttempts < 1)
+            {
+                throw new ArgumentException("Value must be greater than 1.", "maxAttempts");
+            }
+
+            if(incrementValue < 1)
+            {
+                throw new ArgumentException("Value must be greater than 1.", "incrementValue");
+            }
+
+            this.attempts = 0;
             this.maxAttempts = maxAttempts;
             this.incrementValue = incrementValue;
         }
