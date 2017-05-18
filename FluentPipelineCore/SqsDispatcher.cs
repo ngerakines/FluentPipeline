@@ -34,6 +34,7 @@
             this.sqsDispatcherConfiguration = sqsDispatcherConfiguration;
             this.loggerFactory = loggerFactory;
             this.workerFactory = workerFactory;
+            this.backoffPolicy = backoffPolicy;
         }
 
         public IDispatcher<Message> Create()

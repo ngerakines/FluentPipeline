@@ -85,12 +85,16 @@
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 
             var workerFactory = new SqsWorkerFactory(loggerFactory, serviceProvider, sqsDispatcherConfig);
-            var backoffPolicy = new DefaultBackoffPolicy();
+            var backoffPolicy = new GraduatedBackoff();
             var dispatcherFactory = new SqsDispatcherFactory(loggerFactory, workerFactory, backoffPolicy, sqsDispatcherConfig);
             var dispatcher = dispatcherFactory.Create();
 
             dispatcher.Run();
-            dispatcher.StartWorker();
+
+            for(int i = 0; i < 5; i ++) // Create 5 workers
+            {
+                dispatcher.StartWorker();
+            }
 
             while (true)
             {
