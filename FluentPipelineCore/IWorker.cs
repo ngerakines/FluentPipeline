@@ -103,7 +103,7 @@ namespace FluentPipeline.Core
                 throw new ArgumentException("Value must be greater than 1.", "incrementValue");
             }
 
-            this.attempts = 0;
+            attempts = 0;
             this.maxAttempts = maxAttempts;
             this.incrementValue = incrementValue;
         }
