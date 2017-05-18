@@ -9,6 +9,11 @@
     using FluentPipeline.Core.Middleware;
     using Newtonsoft.Json.Linq;
     using System.Threading.Tasks;
+    using Amazon.SQS;
+    using Amazon.Runtime.CredentialManagement;
+    using Amazon.Runtime;
+    using Amazon.Extensions.NETCore.Setup;
+    using Amazon;
 
     class LogEvents
     {
@@ -46,7 +51,16 @@
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
-            var configration = builder.Build();
+            var configuration = builder.Build();
+
+            var sqsDispatcherConfig = new SqsDispatcherConfiguration
+            {
+                AccessKey = configuration.GetValue<string>("Sqs:AccessKey"),
+                SecretKey = configuration.GetValue<string>("Sqs:SecretKey"),
+                Region = configuration.GetValue<string>("Sqs:Region"),
+                Queue = configuration.GetValue<string>("Sqs:QueueUrl"),
+                BacklogSize = configuration.GetValue<int>("Sqs:BacklogSize")
+            };
 
             ILoggerFactory loggerFactory = new LoggerFactory();
             loggerFactory.AddConsole(LogLevel.Trace).AddDebug();
@@ -62,16 +76,13 @@
             serviceCollection.AddTransient<IMiddleware, EchoMiddleware>();
             serviceCollection.AddTransient<IMiddlewareDispatcher, DefaultMiddlewareDispatcher>();
 
-            IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
-
-            var sqsDispatcherConfig = new SqsDispatcherConfiguration
+            serviceCollection.AddAWSService<IAmazonSQS>(new AWSOptions
             {
-                AccessKey = configration.GetValue<string>("Sqs:AccessKey"),
-                SecretKey = configration.GetValue<string>("Sqs:SecretKey"),
-                Region = configration.GetValue<string>("Sqs:Region"),
-                Queue = configration.GetValue<string>("Sqs:QueueUrl"),
-                BacklogSize = configration.GetValue<int>("Sqs:BacklogSize")
-            };
+                Region = RegionEndpoint.GetBySystemName(sqsDispatcherConfig.Region),
+                Credentials = new BasicAWSCredentials(sqsDispatcherConfig.AccessKey, sqsDispatcherConfig.SecretKey)
+            });
+
+            IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 
             var workerFactory = new SqsWorkerFactory(loggerFactory, serviceProvider, sqsDispatcherConfig);
             var backoffPolicy = new DefaultBackoffPolicy();
