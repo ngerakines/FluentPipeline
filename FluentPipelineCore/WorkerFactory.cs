@@ -22,7 +22,7 @@ namespace FluentPipeline.Core
 
         public IWorker Create(IProducerConsumerCollection<string> workQueue)
         {
-            return new StringWorker(loggerFactory, workQueue);
+            return new StringWorker(loggerFactory, new RandomBackoffPolicy(), workQueue);
         }
 
     }

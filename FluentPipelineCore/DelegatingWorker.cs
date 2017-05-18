@@ -9,14 +9,16 @@
     {
         private readonly ILogger logger;
         private readonly IProducerConsumerCollection<T> workQueue;
+        private readonly IBackoffPolicy backoffPolicy;
         private readonly CancellationTokenSource cancellationTokenSource;
         private readonly CancellationToken cancellationToken;
         private Task serviceTask;
 
-        public DelegatingWorker(ILoggerFactory loggerFactory, IProducerConsumerCollection<T> workQueue)
+        public DelegatingWorker(ILoggerFactory loggerFactory, IBackoffPolicy backoffPolicy, IProducerConsumerCollection<T> workQueue)
         {
             logger = loggerFactory.CreateLogger("FluentPipeline.Core.DelegatingWorker");
             this.workQueue = workQueue;
+            this.backoffPolicy = backoffPolicy;
 
             cancellationTokenSource = new CancellationTokenSource();
             cancellationToken = cancellationTokenSource.Token;
@@ -28,6 +30,8 @@
         {
             serviceTask = Task.Run(() =>
             {
+                var backoffPolicy = new GraduatedBackoffPolicy();
+
                 logger.LogInformation(LoggingEvents.WORKER_STARTUP, "Worker has started.");
                 while (!cancellationToken.IsCancellationRequested)
                 {
@@ -39,11 +43,16 @@
                         {
                             logger.LogDebug(LoggingEvents.WORKER_RUN, "Worker has found work: {0}", result);
                             ProcessWork(result);
+
+                            backoffPolicy.RecordAttempt(true);
                         }
                         else
                         {
-                            logger.LogInformation(LoggingEvents.WORKER_RUN, "Worker did not find work.");
-                            Task.Delay(5000, cancellationToken).Wait();
+                            logger.LogInformation(LoggingEvents.WORKER_RUN, "Worker did not find work; preparing to wait={0}.", backoffPolicy.Delay());
+
+                            backoffPolicy.RecordAttempt(false);
+
+                            Task.Delay(backoffPolicy.Delay(), cancellationToken).Wait();
                         }
                     }
                     catch (TaskCanceledException)

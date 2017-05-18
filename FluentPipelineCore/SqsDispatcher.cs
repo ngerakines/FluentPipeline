@@ -78,18 +78,20 @@
     {
         private readonly IServiceProvider services;
         private readonly ILoggerFactory loggerFactory;
+        private readonly IBackoffPolicy backoffPolicy;
         private readonly SqsDispatcherConfiguration sqsDispatcherConfiguration;
 
-        public SqsWorkerFactory(ILoggerFactory loggerFactory, IServiceProvider services, SqsDispatcherConfiguration sqsDispatcherConfiguration)
+        public SqsWorkerFactory(ILoggerFactory loggerFactory, IServiceProvider services, IBackoffPolicy backoffPolicy, SqsDispatcherConfiguration sqsDispatcherConfiguration)
         {
             this.services = services;
             this.loggerFactory = loggerFactory;
+            this.backoffPolicy = backoffPolicy;
             this.sqsDispatcherConfiguration = sqsDispatcherConfiguration;
         }
 
         public IWorker Create(IProducerConsumerCollection<Message> workQueue)
         {
-            return new SqsWorker(loggerFactory, workQueue, services, sqsDispatcherConfiguration);
+            return new SqsWorker(loggerFactory, workQueue, services, backoffPolicy, sqsDispatcherConfiguration);
         }
     }
 
@@ -98,11 +100,13 @@
         private readonly ILogger logger;
         private readonly IServiceProvider services;
         private readonly SqsDispatcherConfiguration sqsDispatcherConfiguration;
+        private readonly IBackoffPolicy backoffPolicy;
 
-        public SqsWorker(ILoggerFactory loggerFactory, IProducerConsumerCollection<Message> workQueue, IServiceProvider services, SqsDispatcherConfiguration sqsDispatcherConfiguration) : base(loggerFactory, workQueue)
+        public SqsWorker(ILoggerFactory loggerFactory, IProducerConsumerCollection<Message> workQueue, IServiceProvider services, IBackoffPolicy backoffPolicy, SqsDispatcherConfiguration sqsDispatcherConfiguration) : base(loggerFactory, backoffPolicy, workQueue)
         {
             logger = loggerFactory.CreateLogger("FluentPipeline.Core.SqsWorker");
             this.services = services;
+            this.backoffPolicy = backoffPolicy;
             this.sqsDispatcherConfiguration = sqsDispatcherConfiguration;
         }
 

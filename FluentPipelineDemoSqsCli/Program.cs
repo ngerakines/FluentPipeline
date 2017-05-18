@@ -83,9 +83,8 @@
 
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var workerFactory = new SqsWorkerFactory(loggerFactory, serviceProvider, sqsDispatcherConfig);
-            var backoffPolicy = new GraduatedBackoffPolicy();
-            var dispatcherFactory = new SqsDispatcherFactory(loggerFactory, workerFactory, backoffPolicy, sqsDispatcherConfig);
+            var workerFactory = new SqsWorkerFactory(loggerFactory, serviceProvider, new GraduatedBackoffPolicy(), sqsDispatcherConfig);
+            var dispatcherFactory = new SqsDispatcherFactory(loggerFactory, workerFactory, new StaticBackoffPolicy(5000), sqsDispatcherConfig);
             var dispatcher = dispatcherFactory.Create();
 
             dispatcher.Run();

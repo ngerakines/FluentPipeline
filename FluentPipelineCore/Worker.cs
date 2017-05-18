@@ -8,7 +8,7 @@
 
         private readonly ILogger logger;
 
-        public StringWorker(ILoggerFactory loggerFactory, IProducerConsumerCollection<string> workQueue) : base(loggerFactory, workQueue)
+        public StringWorker(ILoggerFactory loggerFactory, IBackoffPolicy backoffPolicy, IProducerConsumerCollection<string> workQueue) : base(loggerFactory, backoffPolicy, workQueue)
         {
             logger = loggerFactory.CreateLogger("FluentPipeline.Core.StringWorker");
         }
