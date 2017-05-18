@@ -4,3 +4,6 @@ FluentPipelineDemoCli/obj
 FluentPipelineDemoCli/bin
 FluentPipelineDemoWeb/bin
 FluentPipelineDemoWeb/obj
+FluentPipelineDemoSqsCli/bin
+FluentPipelineDemoSqsCli/obj
+FluentPipelineDemoSqsCli/appsettings.json

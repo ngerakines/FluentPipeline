@@ -10,6 +10,7 @@
     using System.Collections.Concurrent;
     using Microsoft.Extensions.DependencyInjection;
     using FluentPipeline.Core.Middleware;
+    using System.Threading;
 
     public class SqsDispatcherConfiguration
     {
@@ -26,8 +27,9 @@
         private readonly SqsDispatcherConfiguration sqsDispatcherConfiguration;
         private readonly ILoggerFactory loggerFactory;
         private readonly IWorkerFactory<Message> workerFactory;
+        private readonly IBackoffPolicy backoffPolicy = null;
 
-        public SqsDispatcherFactory(ILoggerFactory loggerFactory, IWorkerFactory<Message> workerFactory, SqsDispatcherConfiguration sqsDispatcherConfiguration)
+        public SqsDispatcherFactory(ILoggerFactory loggerFactory, IWorkerFactory<Message> workerFactory, IBackoffPolicy backoffPolicy, SqsDispatcherConfiguration sqsDispatcherConfiguration)
         {
             this.sqsDispatcherConfiguration = sqsDispatcherConfiguration;
             this.loggerFactory = loggerFactory;
@@ -36,7 +38,7 @@
 
         public IDispatcher<Message> Create()
         {
-            return new SqsDispatcher(loggerFactory, workerFactory, sqsDispatcherConfiguration);
+            return new SqsDispatcher(loggerFactory, workerFactory, backoffPolicy, sqsDispatcherConfiguration);
         }
     }
 
@@ -45,21 +47,29 @@
         private readonly ILogger logger;
         private readonly SqsDispatcherConfiguration sqsDispatcherConfiguration;
 
-        public SqsDispatcher(ILoggerFactory loggerFactory, IWorkerFactory<Message> workerFactory, SqsDispatcherConfiguration sqsDispatcherConfiguration) : base(loggerFactory, workerFactory)
+        public SqsDispatcher(ILoggerFactory loggerFactory, IWorkerFactory<Message> workerFactory, IBackoffPolicy backoffPolicy, SqsDispatcherConfiguration sqsDispatcherConfiguration) : base(loggerFactory, workerFactory, backoffPolicy)
         {
             logger = loggerFactory.CreateLogger("FluentPipeline.Core.SqsDispatcher");
             this.sqsDispatcherConfiguration = sqsDispatcherConfiguration;
         }
 
-        public override void PopulateWork()
+        public override bool PopulateWork(CancellationToken cancellationToken)
         {
-            IAmazonSQS sqs = new AmazonSQSClient(RegionEndpoint.GetBySystemName(sqsDispatcherConfiguration.Region));
+            var success = false;
+            IAmazonSQS sqs = new AmazonSQSClient(sqsDispatcherConfiguration.AccessKey, sqsDispatcherConfiguration.SecretKey, RegionEndpoint.GetBySystemName(sqsDispatcherConfiguration.Region));
             var response = sqs.ReceiveMessageAsync(sqsDispatcherConfiguration.Queue).Result;
+
+            logger.LogDebug(LoggingEvents.DISPATCHER_RUN, "Received messages from SQS. count={0} queue={1}", response.Messages.Count, sqsDispatcherConfiguration.Queue);
 
             foreach (Message message in response.Messages)
             {
+                logger.LogDebug(LoggingEvents.DISPATCHER_RUN, "Populating queue with message. id={0} queue={1}", message.MessageId, sqsDispatcherConfiguration.Queue);
+                logger.LogTrace(LoggingEvents.DISPATCHER_RUN, message.Body);
                 workQueue.Enqueue(message);
+                success = true;
             }
+
+            return success;
         }
     }
 

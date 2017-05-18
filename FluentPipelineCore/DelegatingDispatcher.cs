@@ -11,6 +11,8 @@
     {
         private readonly ILogger logger;
         private readonly IWorkerFactory<T> workerFactory;
+        private readonly IBackoffPolicy backoffPolicy;
+
         private readonly CancellationTokenSource cancellationTokenSource;
 
         protected readonly Concurrent​Queue<T> workQueue;
@@ -18,7 +20,7 @@
         protected readonly CancellationToken cancellationToken;
         protected Task serviceTask;
 
-        public DelegatingDispatcher(ILoggerFactory loggerFactory, IWorkerFactory<T> workerFactory)
+        public DelegatingDispatcher(ILoggerFactory loggerFactory, IWorkerFactory<T> workerFactory, IBackoffPolicy backoffPolicy = null)
         {
             logger = loggerFactory.CreateLogger("FluentPipeline.Core.Dispatcher");
             this.workerFactory = workerFactory;
@@ -27,6 +29,15 @@
 
             workQueue = new Concurrent​Queue<T>();
             workers = new List<IWorker>();
+
+            if (backoffPolicy == null)
+            {
+                this.backoffPolicy = new StaticBackoffPolicy(5000);
+            }
+            else
+            {
+                this.backoffPolicy = backoffPolicy;
+            }
         }
 
         public void Stop()
@@ -65,7 +76,7 @@
                     logger.LogInformation(LoggingEvents.DISPATCHER_SHUTDOWN, "Dispatcher gracefully stopped.");
                 }
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 // Ignored
             }
@@ -79,7 +90,7 @@
             }
         }
 
-        public abstract void PopulateWork();
+        public abstract bool PopulateWork(CancellationToken cancellationToken);
 
         public void Run()
         {
@@ -90,7 +101,12 @@
                 {
                     try
                     {
-                        PopulateWork();
+                        var success = PopulateWork(cancellationToken);
+                        logger.LogDebug(LoggingEvents.DISPATCHER_RUN, "Dispatcher populated work. success={0}", success);
+                        backoffPolicy.RecordAttempt(success);
+                        var sleepDelay = backoffPolicy.Delay();
+                        logger.LogDebug(LoggingEvents.DISPATCHER_RUN, "Dispatcher preparing to delay. sleepDelay={0}", sleepDelay);
+                        Task.Delay(backoffPolicy.Delay(), cancellationToken).Wait();
                     }
                     catch (TaskCanceledException)
                     { }

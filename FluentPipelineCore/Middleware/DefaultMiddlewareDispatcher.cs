@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+
     public class DefaultMiddlewareDispatcher : IMiddlewareDispatcher
     {
         private readonly IList<IMiddleware> middleware;

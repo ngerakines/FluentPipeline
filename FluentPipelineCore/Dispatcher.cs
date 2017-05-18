@@ -5,29 +5,48 @@ namespace FluentPipeline.Core
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
+    using System.Threading;
+
+    public class RandomBackoffPolicy : IBackoffPolicy
+    {
+        private readonly Random random = new Random();
+        private readonly int min;
+        private readonly int max;
+
+        public RandomBackoffPolicy(int min = 0, int max = 1000)
+        {
+            this.min = min;
+            this.max = max;
+        }
+
+        public int Delay()
+        {
+            return random.Next(0, 1000);
+        }
+
+        public void RecordAttempt(bool success = false)
+        {
+            throw new NotImplementedException();
+        }
+    }
 
     public class StringDispatcher : DelegatingDispatcher<string>
     {
-        private readonly Random random = new Random();
-        private readonly object syncLock = new object();
-
         private readonly ILogger logger;
+        private readonly Random random = new Random();
 
-        public StringDispatcher(ILoggerFactory loggerFactory, IWorkerFactory<string> workerFactory) : base(loggerFactory, workerFactory)
+        public StringDispatcher(ILoggerFactory loggerFactory, IWorkerFactory<string> workerFactory, IBackoffPolicy backoffPolicy) : base(loggerFactory, workerFactory, backoffPolicy)
         {
             logger = loggerFactory.CreateLogger("FluentPipeline.Core.StringDispatcher");
         }
 
-        public override void PopulateWork()
+        public override bool PopulateWork(CancellationToken cancellationToken)
         {
             #region demo
             logger.LogInformation(LoggingEvents.DISPATCHER_RUN, "Dispatcher queing work.");
-            //workQueue.Enqueue(RandomString(4));
-
-            var sleepDuration = random.Next(0, 1000);
-            logger.LogDebug(LoggingEvents.DISPATCHER_RUN, "Dispatcher sleeping. amount={0}", sleepDuration);
-            Task.Delay(sleepDuration, cancellationToken).Wait();
             #endregion
+
+            return true;
         }
 
         #region demo

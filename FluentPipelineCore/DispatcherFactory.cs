@@ -23,7 +23,7 @@ namespace FluentPipeline.Core
         public IDispatcher<string> Create()
         {
             logger.LogInformation("Creating dispatcher.");
-            return new StringDispatcher(loggerFactory, workerFactory);
+            return new StringDispatcher(loggerFactory, workerFactory, null);
         }
     }
 }
