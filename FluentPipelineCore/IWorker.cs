@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace FluentPipeline.Core
@@ -81,6 +82,38 @@ namespace FluentPipeline.Core
                 return result;
             }
             return defaultBackoff;
+        }
+    }
+
+    public class GraduatedBackoff : IBackoffPolicy
+    {
+        private int attempts;
+        private readonly int maxAttempts;
+        private readonly int incrementValue;
+
+        public GraduatedBackoff(int attempts = 0, int maxAttempts = 60, int incrementValue = 1000)
+        {
+            this.attempts = attempts;
+            this.maxAttempts = maxAttempts;
+            this.incrementValue = incrementValue;
+        }
+        public int Delay()
+        {
+            return attempts * incrementValue;
+        }
+
+        public void RecordAttempt(bool success = false)
+        {
+            if (success)
+            {
+                attempts = 0;
+            }
+            else
+            {
+                attempts++;
+            }
+
+            attempts = (attempts > maxAttempts ? maxAttempts : attempts);
         }
     }
 }
