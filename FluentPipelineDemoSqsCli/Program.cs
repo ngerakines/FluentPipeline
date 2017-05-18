@@ -1,19 +1,18 @@
 ﻿namespace FluentPipeline.SqsCli
 {
+    using Amazon;
+    using Amazon.Extensions.NETCore.Setup;
+    using Amazon.Runtime;
+    using Amazon.SQS;
     using FluentPipeline.Core;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.DependencyInjection;
+    using FluentPipeline.Core.Middleware;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.IO;
-    using FluentPipeline.Core.Middleware;
-    using Newtonsoft.Json.Linq;
     using System.Threading.Tasks;
-    using Amazon.SQS;
-    using Amazon.Runtime.CredentialManagement;
-    using Amazon.Runtime;
-    using Amazon.Extensions.NETCore.Setup;
-    using Amazon;
 
     class LogEvents
     {
@@ -85,7 +84,7 @@
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 
             var workerFactory = new SqsWorkerFactory(loggerFactory, serviceProvider, sqsDispatcherConfig);
-            var backoffPolicy = new GraduatedBackoff();
+            var backoffPolicy = new GraduatedBackoffPolicy();
             var dispatcherFactory = new SqsDispatcherFactory(loggerFactory, workerFactory, backoffPolicy, sqsDispatcherConfig);
             var dispatcher = dispatcherFactory.Create();
 
