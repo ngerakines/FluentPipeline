@@ -20,7 +20,7 @@
                 throw new ArgumentException("Value must be greater than 1.", "incrementValue");
             }
 
-            attempts = 0;
+            attempts = 1;
             this.maxAttempts = maxAttempts;
             this.incrementValue = incrementValue;
         }
@@ -33,7 +33,7 @@
         {
             if (success)
             {
-                attempts = 0;
+                attempts = 1;
             }
             else
             {
