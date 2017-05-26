@@ -89,9 +89,9 @@
             this.sqsDispatcherConfiguration = sqsDispatcherConfiguration;
         }
 
-        public IWorker Create(IProducerConsumerCollection<Message> workQueue)
+        public IWorker Create(IProducerConsumerCollection<Message> workQueue, string workerName = null)
         {
-            return new SqsWorker(loggerFactory, workQueue, services, backoffPolicy, sqsDispatcherConfiguration);
+            return new SqsWorker(loggerFactory, workQueue, services, backoffPolicy, sqsDispatcherConfiguration, workerName);
         }
     }
 
@@ -102,9 +102,10 @@
         private readonly SqsDispatcherConfiguration sqsDispatcherConfiguration;
         private readonly IBackoffPolicy backoffPolicy;
 
-        public SqsWorker(ILoggerFactory loggerFactory, IProducerConsumerCollection<Message> workQueue, IServiceProvider services, IBackoffPolicy backoffPolicy, SqsDispatcherConfiguration sqsDispatcherConfiguration) : base(loggerFactory, backoffPolicy, workQueue)
+        public SqsWorker(ILoggerFactory loggerFactory, IProducerConsumerCollection<Message> workQueue, IServiceProvider services, IBackoffPolicy backoffPolicy, SqsDispatcherConfiguration sqsDispatcherConfiguration, string workerName = null) : base(loggerFactory, backoffPolicy, workQueue)
         {
-            logger = loggerFactory.CreateLogger("FluentPipeline.Core.SqsWorker");
+            workerName = String.IsNullOrEmpty(workerName) ? new Random().Next().ToString() : workerName;
+            logger = loggerFactory.CreateLogger("FluentPipeline.Core.SqsWorker(" + workerName + ")");
             this.services = services;
             this.backoffPolicy = backoffPolicy;
             this.sqsDispatcherConfiguration = sqsDispatcherConfiguration;

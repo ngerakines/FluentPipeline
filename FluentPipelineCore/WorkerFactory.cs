@@ -6,7 +6,7 @@ namespace FluentPipeline.Core
 
     public interface IWorkerFactory<T>
     {
-        IWorker Create(IProducerConsumerCollection<T> workQueue);
+        IWorker Create(IProducerConsumerCollection<T> workQueue, string workerName = null);
     }
 
     public class StringWorkerFactory : IWorkerFactory<string>
@@ -20,9 +20,9 @@ namespace FluentPipeline.Core
             logger = loggerFactory.CreateLogger("FluentPipeline.Core.WorkerFactory");
         }
 
-        public IWorker Create(IProducerConsumerCollection<string> workQueue)
+        public IWorker Create(IProducerConsumerCollection<string> workQueue, string workerName = null)
         {
-            return new StringWorker(loggerFactory, new RandomBackoffPolicy(), workQueue);
+            return new StringWorker(loggerFactory, new RandomBackoffPolicy(), workQueue, workerName);
         }
 
     }

@@ -115,9 +115,9 @@
             });
         }
 
-        public void StartWorker()
+        public void StartWorker(string workerName = null)
         {
-            var worker = workerFactory.Create(workQueue);
+            var worker = workerFactory.Create(workQueue, workerName);
             workers.Add(worker);
             worker.Run();
         }

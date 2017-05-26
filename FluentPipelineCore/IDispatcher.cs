@@ -4,7 +4,7 @@ namespace FluentPipeline.Core
     public interface IDispatcher<T>
     {
         void Run();
-        void StartWorker();
+        void StartWorker(string workerName = null);
         void Stop();
         void Wait();
         void StopAll();

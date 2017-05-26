@@ -91,7 +91,7 @@
 
             for(int i = 0; i < 5; i ++) // Create 5 workers
             {
-                dispatcher.StartWorker();
+                dispatcher.StartWorker("worker " + i.ToString());
             }
 
             while (true)
