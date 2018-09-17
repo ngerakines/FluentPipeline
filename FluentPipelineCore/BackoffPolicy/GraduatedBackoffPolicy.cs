@@ -1,7 +1,7 @@
 ﻿namespace FluentPipeline.Core
 {
-
     using System;
+
     public class GraduatedBackoffPolicy : IBackoffPolicy
     {
         private int attempts;

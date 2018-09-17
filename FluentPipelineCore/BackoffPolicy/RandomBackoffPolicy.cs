@@ -1,7 +1,7 @@
 ﻿namespace FluentPipeline.Core
 {
-
     using System;
+
     public class RandomBackoffPolicy : IBackoffPolicy
     {
         private readonly Random random = new Random();

@@ -1,4 +1,4 @@
-namespace FluentPipeline.Core
+namespace FluentPipeline.Core.String
 {
 
     using System;

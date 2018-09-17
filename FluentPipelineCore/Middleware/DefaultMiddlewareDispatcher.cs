@@ -34,5 +34,4 @@
             Task.WaitAll(middleware.Where(m => m.CanHandle(parsedInput)).Select(m => m.Handle(parsedInput)).ToArray());
         }
     }
-
 }

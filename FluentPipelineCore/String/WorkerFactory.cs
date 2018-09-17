@@ -1,13 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
-
-namespace FluentPipeline.Core
+﻿namespace FluentPipeline.Core.String
 {
-
-    public interface IWorkerFactory<T>
-    {
-        IWorker Create(IProducerConsumerCollection<T> workQueue);
-    }
+    using Microsoft.Extensions.Logging;
+    using System.Collections.Concurrent;
 
     public class StringWorkerFactory : IWorkerFactory<string>
     {

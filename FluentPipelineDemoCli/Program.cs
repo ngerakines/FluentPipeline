@@ -1,9 +1,8 @@
 ﻿namespace FluentPipeline.Cli
 {
-    using System;
+    using FluentPipeline.Core.String;
     using Microsoft.Extensions.Logging;
-
-    using FluentPipeline.Core;
+    using System;
 
     class Program
     {

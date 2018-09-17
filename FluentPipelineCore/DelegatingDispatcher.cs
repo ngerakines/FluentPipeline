@@ -1,12 +1,12 @@
 ﻿namespace FluentPipeline.Core
 {
-
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Logging;
+
     public abstract class DelegatingDispatcher<T> : IDispatcher<T>
     {
         private readonly ILogger logger;

@@ -1,6 +1,5 @@
 namespace FluentPipeline.Core
 {
-
     public interface IDispatcher<T>
     {
         void Run();

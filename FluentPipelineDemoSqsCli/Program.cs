@@ -6,6 +6,7 @@
     using Amazon.SQS;
     using FluentPipeline.Core;
     using FluentPipeline.Core.Middleware;
+    using FluentPipeline.Core.Sqs;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;

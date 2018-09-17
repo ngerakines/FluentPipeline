@@ -1,7 +1,7 @@
 ﻿namespace FluentPipeline.Core
 {
-
     using System.Collections.Generic;
+
     public class BackoffPolicy : IBackoffPolicy
     {
         private int attempts;

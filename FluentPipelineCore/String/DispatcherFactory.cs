@@ -1,11 +1,6 @@
-namespace FluentPipeline.Core
+﻿namespace FluentPipeline.Core.String
 {
     using Microsoft.Extensions.Logging;
-
-    public interface IDispatcherFactory<T>
-    {
-        IDispatcher<T> Create();
-    }
 
     public class StringDispatcherFactory : IDispatcherFactory<string>
     {
